@@ -9,7 +9,7 @@
   * Developers (group) has RDSFullAccess, EC2FullAccess, LambdaFullAccess, S3FullAccess
 
 # Notes and Tools
- *https://dev.mysql.com/downloads/workbench/
+ * https://dev.mysql.com/downloads/workbench/
   * cividdata.crogewynsqom.us-east-1.rds.amazonaws.com:3306
   * admin / password is our team name
 * AWS Console https://165284110550.signin.aws.amazon.com/console
