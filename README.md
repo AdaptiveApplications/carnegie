@@ -14,3 +14,8 @@
 	* admin / password is our team name
 * AWS Console https://165284110550.signin.aws.amazon.com/console
 * Slack: adaptiveapplications.slack.com
+
+# Build Lambda NodeJS 
+1. Create a zip archive containing index.js and the entire node_modules directory.
+2. Upload the zip archive to the Lambda dev console.
+3. Profit.
