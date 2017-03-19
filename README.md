@@ -2,6 +2,11 @@
 
 # Amazon Developer (Alexa) accounts
 * Login --> https://developer.amazon.com/home.html
+* Summary of User Permissions
+	* Administrator (Aaron)
+	* Developer (let me know if you need a new invitation)
+	* Marketer
+	* Analyst
 
 # AWS accounts
 * Everyone has an IAM account that is your first name
