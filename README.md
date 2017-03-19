@@ -1,5 +1,8 @@
 # Git Branching Model: http://nvie.com/posts/a-successful-git-branching-model/ 
 
+# Amazon Developer (Alexa) accounts
+* Login --> https://developer.amazon.com/home.html
+
 # AWS accounts
 * Everyone has an IAM account that is your first name
 * Please login and change your password -> https://165284110550.signin.aws.amazon.com/console
