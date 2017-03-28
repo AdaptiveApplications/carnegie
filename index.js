@@ -11,7 +11,7 @@ var connection = mysql.createConnection(
     }
 );
 
-const SKILL_NAME = "Louisville";
+const SKILL_NAME = "Louisville Robberies";
 // TODO could be a DB lookup
 const MONTH_MAP = new Map();
 
@@ -192,7 +192,8 @@ exports.handler = function(event, context) {
 
     var alexa = Alexa.handler(event, context);
 
-    alexa.appId = "amzn1.ask.skill.f1666054-3195-4e05-9e59-d32d227c9c87";
+    //alexa.appId = "amzn1.ask.skill.f1666054-3195-4e05-9e59-d32d227c9c87"; // scott's
+    alexa.appId = "amzn1.ask.skill.adb80810-23d3-4b83-96d4-ec6a407bc831";
     alexa.registerHandlers(handlers);
     alexa.execute();
 };
