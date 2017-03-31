@@ -16,13 +16,6 @@
 	* lambda (role) has RDSFullAccess
 	* Developers (group) has RDSFullAccess, EC2FullAccess, LambdaFullAccess, S3FullAccess
 
-# Notes and Tools
-* https://dev.mysql.com/downloads/workbench/
-	* civicdata.crogewynsqom.us-east-1.rds.amazonaws.com:3306
-	* username: ro / password: civicdataalliance
-* AWS Console https://165284110550.signin.aws.amazon.com/console
-* Slack: adaptiveapplications.slack.com
-
 # Build Lambda NodeJS 
 1. Create a zip archive containing index.js and the entire node_modules directory.
 2. Upload the zip archive to the Lambda dev console.
@@ -45,3 +38,9 @@ $ pip install Geocoder
 $ python gtfs_realtime_client.py <POLL INTERVAL> <BUS NUMBER> <MAX BUSES>
 ~~~~
 
+# Notes and Tools
+* https://dev.mysql.com/downloads/workbench/
+	* civicdata.crogewynsqom.us-east-1.rds.amazonaws.com:3306
+	* username: ro / password: civicdataalliance
+* AWS Console https://165284110550.signin.aws.amazon.com/console
+* Slack: adaptiveapplications.slack.com
