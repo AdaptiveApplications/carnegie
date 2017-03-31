@@ -19,7 +19,7 @@
 # Notes and Tools
 * https://dev.mysql.com/downloads/workbench/
 	* civicdata.crogewynsqom.us-east-1.rds.amazonaws.com:3306
-	* admin / password is our team name
+	* username: ro / password: civicdataalliance
 * AWS Console https://165284110550.signin.aws.amazon.com/console
 * Slack: adaptiveapplications.slack.com
 
