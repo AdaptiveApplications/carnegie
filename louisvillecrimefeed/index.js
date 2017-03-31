@@ -5,8 +5,8 @@ exports.handler = (event, context, callback) => {
     var connection = mysql.createConnection(
         {
           host     : 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com',
-          user     : 'admin',
-          password : 'bloodsweatandtears',
+          user     : 'ro',
+          password : 'civicdataalliance',
           database : 'louisvilleky',
         }
     );
