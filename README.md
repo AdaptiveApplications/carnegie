@@ -37,11 +37,11 @@
 # Python setup (v2.7)
 
 ~~~~
-pip install numpy
-pip install quantities
-pip install geopy
-pip install Geocoder
+$ pip install numpy
+$ pip install quantities
+$ pip install geopy
+$ pip install Geocoder
 
-python gtfs_realtime_client.py <POLL INTERVAL> <BUS NUMBER> <MAX BUSES>
+$ python gtfs_realtime_client.py <POLL INTERVAL> <BUS NUMBER> <MAX BUSES>
 ~~~~
 
