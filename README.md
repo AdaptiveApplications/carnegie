@@ -38,6 +38,15 @@ $ pip install Geocoder
 $ python gtfs_realtime_client.py <POLL INTERVAL> <BUS NUMBER> <MAX BUSES>
 ~~~~
 
+# Python setup (v3.*)
+
+~~~~
+$ pip3 install pymsql
+$ pip install urllib
+
+$ python3 louisvillekygov-to-awscivicdata.py
+~~~~
+
 # Notes and Tools
 * https://dev.mysql.com/downloads/workbench/
 	* civicdata.crogewynsqom.us-east-1.rds.amazonaws.com:3306

@@ -1,6 +1,18 @@
 import csv
 import urllib.request
+import ssl
+import os
+import re
+import sys
+import csv
+import time
+import io
+import argparse
+import collections
+import warnings 
 import pymysql	
+import pymysql.cursors
+pymysql.install_as_MySQLdb()
 	
 
 # example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_9.csv
@@ -13,34 +25,9 @@ file_ext = ".csv"
 
 full_filepath = str.format("{}/{}{}_{}{}", url_base, filename_base, year, file_number, file_ext)
 
-
-#print("url: '{}'".format(full_filepath))
-
-with urllib.request.urlopen(full_filepath) as response:
-	data = response.read()
-
-#print("contents: {}", data)
-
-
-# Utilities credited to --> https://bitbucket.org/richardpenman/csv2mysql
-
-import os
-import re
-import sys
-import csv
-import time
-import argparse
-import collections
-
-#import pymysql
-import warnings 
-import pymysql.cursors
-pymysql.install_as_MySQLdb()
-
+# CSV to MySQL Utilities credited to --> https://bitbucket.org/richardpenman/csv2mysql
 # suppress annoying mysql warnings
 #warnings.filterwarnings(action='ignore', category=pymysql.Warning) 
-
-
 
 def get_type(s):
 	"""Find type for this string
@@ -101,20 +88,39 @@ def get_col_types(input_file, max_rows=1000):
 	"""Find the type for each CSV column
 	"""
 	csv_types = collections.defaultdict(list)
-	reader = csv.reader(open(input_file))
-	# test the first few rows for their data types
-	for row_i, row in enumerate(reader):
-		if row_i == 0:
-			header = row
-		else:
-			for col_i, s in enumerate(row):
-				data_type = get_type(s)
-				csv_types[header[col_i]].append(data_type)
- 
-		if row_i == max_rows:
-			break
+
+	context = ssl._create_unverified_context()
+
+	with urllib.request.urlopen(input_file, context=context) as response:
+		csv_str = io.StringIO(response.read().decode('utf-8'))
+		reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True, lineterminator="\r\n")
+		# test the first few rows for their data types
+		
+		for line in reader:
+			print(line)
+
+		
+		rows = enumerate(reader)
+
+		for row_i, row in rows:
+			if row_i == 0:
+				print('++++header++++\n{}:\t{}'.format(row_i, row))
+				header = row
+			else:
+				print('++++data++++\n{}:\t{}'.format(row_i, row))
+				for col_i, s in enumerate(row):
+					data_type = get_type(s)
+					print("col_i: {}".format(col_i))
+					print("header count: {}".format(len(header)))
+					print("header at {}: {}".format(col_i, header[col_i]))
+					print("data type: {}".format(data_type))
+					csv_types[header[col_i]].append(data_type)
+	 
+			if row_i == max_rows:
+				break
 
 	# take the most common data type for each row
+
 	return [most_common(csv_types[col]) for col in header]
 
 
@@ -161,7 +167,7 @@ def main(input_file, user, password, host, table, database, max_inserts=10000):
 	db = pymysql.connect(host=host, user=user, passwd=password, charset='utf8')
 	cursor = db.cursor()
 	# create database and if doesn't exist
-	cursor.execute('CREATE DATABASE IF NOT EXISTS %s;' % database)
+	#cursor.execute('CREATE DATABASE IF NOT EXISTS %s;' % database)
 	db.select_db(database)
 
 	# define table
@@ -169,31 +175,41 @@ def main(input_file, user, password, host, table, database, max_inserts=10000):
 	col_types = get_col_types(input_file)
 	print(col_types)
 
-	header = None
-	for i, row in enumerate(csv.reader(open(input_file))):
-		if header:
-			while len(row) < len(header):
-				row.append('') # this row is missing columns so pad blank values
-			cursor.execute(insert_sql, row)
-			if i % max_inserts == 0:
-				db.commit()
-				print('commit')
-		else:
-			header = format_header(row)
-			schema_sql = get_schema(table, header, col_types)
-			print(schema_sql)
-			# create table
-			cursor.execute('DROP TABLE IF EXISTS %s;' % table)
-			cursor.execute(schema_sql)
-			# create index for more efficient access
-			try:
-				cursor.execute('CREATE INDEX ids ON %s (id);' % table)
-			except pymysql.OperationalError:
-				pass # index already exists
+	header = True
 
-			print('Inserting rows ...')
-			# SQL string for inserting data
-			insert_sql = get_insert(table, header)
+	print("url: '{}'".format(input_file))
+
+	context = ssl._create_unverified_context()
+
+	with urllib.request.urlopen(input_file, context=context) as response:
+		#print(response.read().decode('utf-8'))
+		reader = csv.reader(response.read().decode('utf-8'), dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
+		#data = response.read()
+		#for i, row in enumerate(csv.reader(open(input_file))):
+		for i, row in enumerate(reader):
+			if header:
+				while len(row) < len(header):
+					row.append('') # this row is missing columns so pad blank values
+				cursor.execute(insert_sql, row)
+				if i % max_inserts == 0:
+					db.commit()
+					print('commit')
+			else:
+				header = format_header(row)
+				schema_sql = get_schema(table, header, col_types)
+				print(schema_sql)
+				# create table
+				cursor.execute('DROP TABLE IF EXISTS %s;' % table)
+				cursor.execute(schema_sql)
+				# create index for more efficient access
+				try:
+					cursor.execute('CREATE INDEX ids ON %s (id);' % table)
+				except pymysql.OperationalError:
+					pass # index already exists
+
+				print('Inserting rows ...')
+				# SQL string for inserting data
+				insert_sql = get_insert(table, header)
 
 	# commit rows to database
 	print('Committing rows to database ...')
@@ -210,10 +226,10 @@ if __name__ == '__main__':
 	parser.add_argument('--password', dest='password', default='', help='The MySQL login password')
 	parser.add_argument('--host', dest='host', default='localhost', help='The MySQL host')
 	parser.add_argument('input_file', help='The input CSV file')
-	args = parser.parse_args(sys.argv[1:])
-	if not args.table:
-		# use input file name for table
-		args.table = os.path.splitext(os.path.basename(args.input_file))[0]
+	#args = parser.parse_args(sys.argv[1:])
+	#if not args.table:
+	#	# use input file name for table
+	#	args.table = os.path.splitext(os.path.basename(args.input_file))[0]
 	
 	#main(args.input_file, args.user, args.password, args.host, args.table, args.database)
 	print('executing main... ')
