@@ -100,16 +100,10 @@ def get_col_types(input_file, max_rows=1000):
 
 		for row_i, row in rows:
 			if row_i == 0:
-				#print('++++header++++\n{}:\t{}'.format(row_i, row))
 				header = row
 			else:
-				#print('++++data++++\n{}:\t{}'.format(row_i, row))
 				for col_i, s in enumerate(row):
 					data_type = get_type(s)
-					#print("col_i: {}".format(col_i))
-					#print("header count: {}".format(len(header)))
-					#print("header at {}: {}".format(col_i, header[col_i]))
-					#print("data type: {}".format(data_type))
 					csv_types[header[col_i]].append(data_type)
 	 
 			if row_i == max_rows:
