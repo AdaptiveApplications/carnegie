@@ -1,0 +1,55 @@
+Alexa Skill Setup
+
+The Alexa skill editor is separate from AWS and I haven't found a good way to get its settings into source control. Below is a duplicate of the skill I created in my personal Amazon developer account.
+
+Skill Information
+-----------------
+Name: Louisville
+Invocation Name: louisville    (apparently this has to be two words post-development)
+
+Interaction Model
+-----------------
+Intent Schema
+{
+  "intents": [
+    {
+      "intent": "GetRobberies",
+      "slots": [
+        {
+          "name": "Month",
+          "type": "AMAZON.Month"
+        },
+        {
+          "name": "Area",
+          "type": "LIST_OF_AREAS"
+        }
+      ]
+    },
+    {
+      "intent": "GetRobberiesThisWeek",
+      "slots": [
+        {
+          "name": "Area",
+          "type": "LIST_OF_AREAS"
+        }
+      ]
+    }
+  ]
+}
+
+Custom Slot Types
+LIST_OF_AREAS			Crescent Hill | The Highlands | Saint Matthews
+
+Sample Utterances
+GetRobberies how many robberies occurred in {Month} in {Area}
+GetRobberies how many robberies occurred in {Area} in {Month}
+GetRobberiesThisWeek how many robberies occurred this week in {Area}
+GetRobberies how many robberies happened in {Month} in {Area}
+GetRobberies how many robberies happened in {Area} in {Month}
+GetRobberiesThisWeek how many robberies happened this week in {Area}
+
+
+Configuration
+-------------
+Lambda Endpoint: arn:aws:lambda:us-east-1:165284110550:function:getRobberies
+
