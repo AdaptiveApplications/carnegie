@@ -96,24 +96,20 @@ def get_col_types(input_file, max_rows=1000):
 		reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True, lineterminator="\r\n")
 		# test the first few rows for their data types
 		
-		for line in reader:
-			print(line)
-
-		
 		rows = enumerate(reader)
 
 		for row_i, row in rows:
 			if row_i == 0:
-				print('++++header++++\n{}:\t{}'.format(row_i, row))
+				#print('++++header++++\n{}:\t{}'.format(row_i, row))
 				header = row
 			else:
-				print('++++data++++\n{}:\t{}'.format(row_i, row))
+				#print('++++data++++\n{}:\t{}'.format(row_i, row))
 				for col_i, s in enumerate(row):
 					data_type = get_type(s)
-					print("col_i: {}".format(col_i))
-					print("header count: {}".format(len(header)))
-					print("header at {}: {}".format(col_i, header[col_i]))
-					print("data type: {}".format(data_type))
+					#print("col_i: {}".format(col_i))
+					#print("header count: {}".format(len(header)))
+					#print("header at {}: {}".format(col_i, header[col_i]))
+					#print("data type: {}".format(data_type))
 					csv_types[header[col_i]].append(data_type)
 	 
 			if row_i == max_rows:
@@ -128,8 +124,11 @@ def get_schema(table, header, col_types):
 	"""Generate the schema for this table from given types and columns
 	"""
 	schema_sql = """CREATE TABLE IF NOT EXISTS %s ( 
-		id int NOT NULL AUTO_INCREMENT,""" % table 
+		#id int NOT NULL AUTO_INCREMENT,""" % table 
 
+	#print(header)
+	#print(col_types)
+	
 	for col_name, col_type in zip(header, col_types):
 		schema_sql += '\n%s %s,' % (col_name, col_type)
 
@@ -175,7 +174,7 @@ def main(input_file, user, password, host, table, database, max_inserts=10000):
 	col_types = get_col_types(input_file)
 	print(col_types)
 
-	header = True
+	header = None
 
 	print("url: '{}'".format(input_file))
 
@@ -183,7 +182,8 @@ def main(input_file, user, password, host, table, database, max_inserts=10000):
 
 	with urllib.request.urlopen(input_file, context=context) as response:
 		#print(response.read().decode('utf-8'))
-		reader = csv.reader(response.read().decode('utf-8'), dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
+		csv_str = io.StringIO(response.read().decode('utf-8'))
+		reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
 		#data = response.read()
 		#for i, row in enumerate(csv.reader(open(input_file))):
 		for i, row in enumerate(reader):
@@ -233,4 +233,4 @@ if __name__ == '__main__':
 	
 	#main(args.input_file, args.user, args.password, args.host, args.table, args.database)
 	print('executing main... ')
-	main(full_filepath, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'civicData', 'louisvilleky', max_inserts=10)
+	main(full_filepath, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
