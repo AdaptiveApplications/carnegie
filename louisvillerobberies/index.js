@@ -1,6 +1,7 @@
 var Alexa = require('alexa-sdk');
 var mysql = require('mysql');
 var step = require('step');
+var moment = require('moment');
 
 var connection = mysql.createConnection(
     {
@@ -12,109 +13,29 @@ var connection = mysql.createConnection(
 );
 
 const SKILL_NAME = "Louisville Robberies";
-// TODO could be a DB lookup
 const MONTH_MAP = new Map();
+const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
 var handlers = {
     "GetRobberies": function() {
-        var month = this.event.request.intent.slots.Month.value.toLowerCase();
-        var neighborhood = this.event.request.intent.slots.Area.value.toLowerCase();
-        var alexa = this;
-        var robberyCount = -1;
-
-        step (
-            function getRobberyCount() {
-                var query = " select count(CRIME_TYPE) as cnt " +
-                            " from crimeData " +
-                            " where CRIME_TYPE = 'robbery' " +
-                            " and ZIP_CODE in (select zip from zipCodeLookup where neighborhood = ? ) " +
-                            " and " + buildDateBetweenClause(month);
-
-                console.log(query);
-                connection.query(query, [neighborhood], this);          
-            },
-            function finish(err, rows, fields) {
-                var speechOutput;
-
-                if(err) {
-                    speechOutput = "I'm having trouble getting that information. Please try again later.";
-                    console.log(err);
-                } else {
-                    robberyCount = rows[0].cnt;
-
-                    if(robberyCount == 0) {
-                        step (
-                            // if robberyCount = 0 we want to check that we have zip entries for the requested neighborhood.
-                            // it's possible that the user supplied something for which we haven't accounted.
-                            function getNeighborhoodCount() {
-                                var query = " select count(zip) as cnt from zipCodeLookup where neighborhood = ? ";
-                                connection.query(query, [neighborhood], this);
-                            },
-                            function finish(err, rows, fields) {
-                                var neighborhoodCount = -1;
-                                
-                                if(err) {
-                                    console.log(err);
-                                } else {
-                                    neighborhoodCount = rows[0].cnt;
-
-                                    if(neighborhoodCount > 0) {
-                                        speechOutput = "There were " + robberyCount + " robberies reported in " + neighborhood + " in " + month + ".";
-                                    } else {
-                                        speechOutput = "I don't have any zip codes configured for " + neighborhood + ".";
-                                        console.log("No zips configured for " + neighborhood);
-                                    }
-                                }
-
-                                // commented out these connection.end() statements. 
-                                // they were causing issues during testing where every other test would fail.
-                                // bonus is that requests respond faster but need to figure out how to check # of open DB connections on RDS.
-                                //connection.end();
-                                alexa.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
-                            }
-                        );
-                    } else {
-                        speechOutput = "There were " + robberyCount + " robberies reported in " + neighborhood + " in " + month + ".";
-                        //connection.end();
-                        alexa.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
-                    }
-                }
-            }
-        );
+        getRobberyCount(this, this.event.request.intent.slots.Area.value.toLowerCase(), this.event.request.intent.slots.Month.value.toLowerCase());
     },
-    "GetRobberiesThisYearInNeighborhood": function() {
-        var neighborhood = this.event.request.intent.slots.Area.value.toLowerCase();
-        var count = -1;
-
-        
-        
-        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+    "GetRobberiesThisYear": function() {
+        getRobberyCount(this, this.event.request.intent.slots.Area.value.toLowerCase(), "THIS_YEAR");
     },
-    "GetRobberiesThisWeek": function() {
-        var neighborhood = this.event.request.intent.slots.Area.value.toLowerCase();
-        var count = -1;
-
-        if(neighborhood == "the highlands") {
-            count = 20;
-        } else if(neighborhood == "crescent hill") {
-            count = 6;
-        }
-        
-        if(count > -1) {
-            speechOutput = "There were " + count + " robberies reported this month in " + neighborhood + ".";
-        } else {
-            speechOutput = "I don't have that information at this time."
-        }
-        
-        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+    "GetRobberiesLastYear": function() {
+        getRobberyCount(this, this.event.request.intent.slots.Area.value.toLowerCase(), "LAST_YEAR");
+    },
+    "GetRobberiesLastMonth": function() {
+        getRobberyCount(this, this.event.request.intent.slots.Area.value.toLowerCase(), "LAST_MONTH");
     },
 
     "AMAZON.HelpIntent": function() {
         var speechOutput = "";
-        speechOutput += "Here are some things you can say: ";
+        speechOutput += "Here are some questions you can ask: ";
         speechOutput += "How many robberies occurred in January in The Highlands?";
+        speechOutput += "Or, how many robberies happened last month in Fairdale?";
         speechOutput += "You can also say stop if you're done. ";
-        speechOutput += "So how can I help?";
         this.emit(':ask', speechOutput, speechOutput);
     },
 
@@ -154,6 +75,103 @@ function init() {
     MONTH_MAP.set("december", " '{year}-12-01 00:00:00' and '{year}-12-31 23:59:59' ");
 }
 
+function getRobberyCount(alexa, neighborhood, month) {
+    var robberyCount = -1;
+
+    step (
+        function getRobberyCount() {
+            var sql = " select count(CRIME_TYPE) as cnt " +
+                      " from crimeData " +
+                      " where CRIME_TYPE = 'robbery' " +
+                      " and ZIP_CODE in (select zip from zipCodeLookup where neighborhood = ? ) ";
+
+            switch(month) {
+                case 'LAST_MONTH':
+                    sql += " and " + buildDateBetweenClauseLastMonth();
+                    break;
+                case 'THIS_YEAR':
+                    sql += " and " + buildDateBetweenClauseThisYear();
+                    break;
+                case 'LAST_YEAR':
+                    sql += " and " + buildDateBetweenClauseLastYear();
+                    break;
+                default:
+                    sql += " and " + buildDateBetweenClause(month);
+            }
+
+            console.log(sql);
+            connection.query(sql, [neighborhood], this);          
+        },
+        function finish(err, rows, fields) {
+            var speechOutput;
+
+            if(err) {
+                speechOutput = "I'm having trouble getting that information. Please try again later.";
+                console.log(err);
+            } else {
+                robberyCount = rows[0].cnt;
+
+                if(robberyCount == 0) {
+                    step (
+                        // if robberyCount = 0 we want to check that we have zip entries for the requested neighborhood.
+                        // it's possible that the user supplied something for which we haven't accounted.
+                        function getNeighborhoodCount() {
+                            var sql = " select count(zip) as cnt from zipCodeLookup where neighborhood = ? ";
+                            connection.query(sql, [neighborhood], this);
+                        },
+                        function finish(err, rows, fields) {
+                            var neighborhoodCount = -1;
+                            
+                            if(err) {
+                                console.log(err);
+                            } else {
+                                neighborhoodCount = rows[0].cnt;
+
+                                if(neighborhoodCount > 0) {
+                                    speechOutput = buildSpeechOutput(robberyCount, neighborhood, month);
+                                } else {
+                                    speechOutput = "I don't have any zip codes configured for " + neighborhood + ".";
+                                    console.log("No zips configured for " + neighborhood);
+                                }
+                            }
+
+                            // commented out these connection.end() statements. 
+                            // they were causing issues during testing where every other test would fail.
+                            // bonus is that requests respond faster but need to figure out how to check # of open DB connections on RDS.
+                            //connection.end();
+                            alexa.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+                        }
+                    );
+                } else {
+                    speechOutput = buildSpeechOutput(robberyCount, neighborhood, month);
+                    //connection.end();
+                    alexa.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+                }
+            }
+        }
+    );
+}
+
+function buildSpeechOutput(count, neighborhood, month) {
+    var out = "There were " + count + " robberies reported in " + neighborhood;
+
+    switch(month) {
+        case 'LAST_MONTH':
+            out += " last month.";
+            break;
+        case 'THIS_YEAR':
+            out = "There have been " + count + " robberies reported in " + neighborhood + " this year.";
+            break;
+        case 'LAST_YEAR':
+            out += " last year.";
+            break;
+        default:
+             out += " in " + month + ".";
+    }
+
+    return out;
+}
+
 // NOT USED. Functionality moved in-line above 
 function getNeighborhoodCount(neighborhood) {
     step (
@@ -185,6 +203,28 @@ function buildDateBetweenClause(month) {
     } else {
         console.log("Month value [" + month + "] not found in MONTH_MAP.");
     }
+
+    return betweenClause;
+}
+
+function buildDateBetweenClauseThisYear() {
+    // clause encompasses first day of this year to present
+    var betweenClause = " (DATE_OCCURED between '" + moment().startOf('year').format(DATE_FORMAT) + "' and '" + moment().format(DATE_FORMAT) + "')";
+
+    return betweenClause;
+}
+
+function buildDateBetweenClauseLastYear() {
+    // clause encompasses first and last days of previous year
+    var lastYear = moment().subtract(1, 'years');
+    var betweenClause = " (DATE_OCCURED between '" + lastYear.startOf('year').format(DATE_FORMAT) + "' and '" + lastYear.endOf('year').format(DATE_FORMAT) + "')";
+
+    return betweenClause;
+}
+
+function buildDateBetweenClauseLastMonth() {
+    var lastMonth = moment().subtract(1, 'months');
+    var betweenClause = " (DATE_OCCURED between '" + lastMonth.startOf('month').format(DATE_FORMAT) + "' and '" + lastMonth.endOf('month').format(DATE_FORMAT) + "')";
 
     return betweenClause;
 }
