@@ -20,7 +20,7 @@ pymysql.install_as_MySQLdb()
 url_base = "https://data.louisvilleky.gov/sites/default/files"
 filename_base = "Crime_Data_"
 year = "2017"
-file_number = "9"
+file_number = "7"
 file_ext = ".csv"
 
 full_filepath = str.format("{}/{}{}_{}{}", url_base, filename_base, year, file_number, file_ext)
