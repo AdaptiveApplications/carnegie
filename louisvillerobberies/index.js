@@ -1,28 +1,46 @@
 var Alexa = require('alexa-sdk');
 var db = require('./db.js');
-
-const SKILL_NAME = "Louisville Robberies";
+var constants = require('./constants.js');
 
 var handlers = {
-    "GetRobberies": function() {
-        db.getRobberyCount(this, this.event.request.intent.slots.Area.value.toLowerCase(), this.event.request.intent.slots.Month.value.toLowerCase(), SKILL_NAME);
+    "GetCrime": function() {
+        db.getCrimeCount(this, this.event.request.intent.slots.Crime.value, this.event.request.intent.slots.Area.value, this.event.request.intent.slots.Month.value);
     },
-    "GetRobberiesThisYear": function() {
-        db.getRobberyCount(this, this.event.request.intent.slots.Area.value.toLowerCase(), "THIS_YEAR", SKILL_NAME);
+    "GetCrimeThisYear": function() {
+        db.getCrimeCount(this, this.event.request.intent.slots.Crime.value, this.event.request.intent.slots.Area.value, "THIS_YEAR");
     },
-    "GetRobberiesLastYear": function() {
-        db.getRobberyCount(this, this.event.request.intent.slots.Area.value.toLowerCase(), "LAST_YEAR", SKILL_NAME);
+    "GetCrimeLastYear": function() {
+        db.getCrimeCount(this, this.event.request.intent.slots.Crime.value, this.event.request.intent.slots.Area.value, "LAST_YEAR");
     },
-    "GetRobberiesLastMonth": function() {
-        db.getRobberyCount(this, this.event.request.intent.slots.Area.value.toLowerCase(), "LAST_MONTH", SKILL_NAME);
+    "GetCrimeLastMonth": function() {
+        db.getCrimeCount(this, this.event.request.intent.slots.Crime.value, this.event.request.intent.slots.Area.value, "LAST_MONTH");
+    },
+    "GetCrimeLastYearLouisville": function() {
+        db.getCrimeCount(this, this.event.request.intent.slots.Crime.value, constants.CITY, "LAST_YEAR");
+    },
+    "GetCrimeLastMonthLouisville": function() {
+        db.getCrimeCount(this, this.event.request.intent.slots.Crime.value, constants.CITY, "LAST_MONTH");
+    },
+    "GetCrimeThisYearLouisville": function() {
+        db.getCrimeCount(this, this.event.request.intent.slots.Crime.value, constants.CITY, "THIS_YEAR");
+    },
+    "GetCrimeLouisville": function() {
+        db.getCrimeCount(this, this.event.request.intent.slots.Crime.value, constants.CITY, this.event.request.intent.slots.Month.value);
+    },
+    "GetSupportedCrimeTypes": function() {
+        db.getSupportedCrimeTypes(this);
+    },
+    "GetCrimeDetailsLouisville": function() {
+        db.getCrimeDetails(this, this.event.request.intent.slots.CrimeSingular.value, constants.CITY);
     },
 
     "AMAZON.HelpIntent": function() {
-        var speak = "Here are some questions you can ask: ";
-        speak += "How many robberies occurred in January in The Highlands?";
-        speak += "Or, how many robberies happened last month in Fairdale?";
-        speak += "You can also say stop if you're done. ";
-        this.emit(':ask', speak, speak);
+        var speak = "Here are some sample questions: ";
+        speak += "Alexa, ask " + constants.SKILL_NAME + " how many robberies occurred in January in The Highlands. ";
+        speak += "Or, Alexa, ask " + constants.SKILL_NAME + " how many assaults happened last month in Fairdale. ";
+        speak += "To hear a list of supported crime types, say, Alexa, ask " + constants.SKILL_NAME + " what crime types are supported.";
+        
+        this.emit(':tell', speak, speak);
     },
 
     "AMAZON.StopIntent": function() {
@@ -34,9 +52,11 @@ var handlers = {
     },
 
     "LaunchRequest": function() {
-        var speak = "Welcome to " + SKILL_NAME + ". ";
-        speak += "You can ask questions about the number of robberies in a certain neighborhood.";
-        var repromptText = "For instructions on what you can say, please say help me.";
+        var repromptText = "For instructions on what you can say, please say help.";
+
+        var speak = "Welcome to " + constants.SKILL_NAME + "! ";
+        speak += "You can ask questions about crime in certain neighborhoods. " + repromptText;
+        
         this.emit(':ask', speak, repromptText);
     }
 };

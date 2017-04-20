@@ -1,0 +1,122 @@
+{
+  "intents": [
+    {
+      "slots": [
+        {
+          "name": "Crime",
+          "type": "LIST_OF_CRIMES"
+        },
+        {
+          "name": "Month",
+          "type": "AMAZON.Month"
+        },
+        {
+          "name": "Area",
+          "type": "LIST_OF_AREAS"
+        }
+      ],
+      "intent": "GetCrime"
+    },
+    {
+      "slots": [
+        {
+          "name": "Crime",
+          "type": "LIST_OF_CRIMES"
+        },
+        {
+          "name": "Area",
+          "type": "LIST_OF_AREAS"
+        }
+      ],
+      "intent": "GetCrimeLastMonth"
+    },
+    {
+      "slots": [
+        {
+          "name": "Crime",
+          "type": "LIST_OF_CRIMES"
+        },
+        {
+          "name": "Area",
+          "type": "LIST_OF_AREAS"
+        }
+      ],
+      "intent": "GetCrimeLastYear"
+    },
+    {
+      "slots": [
+        {
+          "name": "Crime",
+          "type": "LIST_OF_CRIMES"
+        },
+        {
+          "name": "Area",
+          "type": "LIST_OF_AREAS"
+        }
+      ],
+      "intent": "GetCrimeThisYear"
+    },
+    {
+      "slots": [
+        {
+          "name": "Crime",
+          "type": "LIST_OF_CRIMES"
+        }
+      ],
+      "intent": "GetCrimeThisYearLouisville"
+    },
+    {
+      "slots": [
+        {
+          "name": "Crime",
+          "type": "LIST_OF_CRIMES"
+        }
+      ],
+      "intent": "GetCrimeLastYearLouisville"
+    },
+    {
+      "slots": [
+        {
+          "name": "Crime",
+          "type": "LIST_OF_CRIMES"
+        }
+      ],
+      "intent": "GetCrimeLastMonthLouisville"
+    },
+    {
+      "slots": [
+        {
+          "name": "Crime",
+          "type": "LIST_OF_CRIMES"
+        },
+        {
+          "name": "Month",
+          "type": "AMAZON.Month"
+        }
+      ],
+      "intent": "GetCrimeLouisville"
+    },
+    {
+      "slots": [
+        {
+          "name": "CrimeSingular",
+          "type": "LIST_OF_CRIMES_SINGULAR"
+        }
+      ],
+      "intent": "GetCrimeDetailsLouisville"
+    },
+    {
+      "slots": [],
+      "intent": "GetSupportedCrimeTypes"
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    }
+  ]
+}
