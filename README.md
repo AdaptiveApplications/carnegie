@@ -17,7 +17,7 @@
 	* Developers (group) has RDSFullAccess, EC2FullAccess, LambdaFullAccess, S3FullAccess
 
 # Build Lambda NodeJS 
-1. Create a zip archive containing index.js and the entire node_modules directory.
+1. Create a zip archive containing *.js and the entire node_modules directory.
 2. Upload the zip archive to the Lambda dev console.
 3. Profit.
 
