@@ -1,3 +1,4 @@
+import json
 import csv
 import urllib.request
 import ssl
@@ -15,15 +16,6 @@ import pymysql.cursors
 pymysql.install_as_MySQLdb()
 	
 
-# example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_9.csv
-
-url_base = "https://data.louisvilleky.gov/sites/default/files"
-filename_base = "Crime_Data_"
-year = "2017"
-file_number = "7"
-file_ext = ".csv"
-
-full_filepath = str.format("{}/{}{}_{}{}", url_base, filename_base, year, file_number, file_ext)
 
 # CSV to MySQL Utilities credited to --> https://bitbucket.org/richardpenman/csv2mysql
 # suppress annoying mysql warnings
@@ -211,20 +203,20 @@ def main(input_file, user, password, host, table, database, max_inserts=10000):
 	print('Done!')
 
 
+def lambda_handler(event, context):
+    #print("Received event: " + json.dumps(event, indent=2))
+    print("beginning handler")
+    
+    #main(args.input_file, args.user, args.password, args.host, args.table, args.database)
+    # example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_9.csv
+    url_base = "https://data.louisvilleky.gov/sites/default/files"
+    filename_base = "Crime_Data_"
+    year = "2017"
+    file_number = "7"
+    file_ext = ".csv"
+    full_filepath = str.format("{}/{}{}_{}{}", url_base, filename_base, year, file_number, file_ext)
+    print('executing main... ')
+    main(full_filepath, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
+    
+    return "handler completed"
 
-if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description='Automatically insert CSV contents into MySQL')
-	parser.add_argument('--table', dest='table', help='Set the name of the table. If not set the CSV filename will be used')
-	parser.add_argument('--database', dest='database', default='test', help='Set the name of the database. If not set the test database will be used')
-	parser.add_argument('--user', dest='user', default='root', help='The MySQL login username')
-	parser.add_argument('--password', dest='password', default='', help='The MySQL login password')
-	parser.add_argument('--host', dest='host', default='localhost', help='The MySQL host')
-	parser.add_argument('input_file', help='The input CSV file')
-	#args = parser.parse_args(sys.argv[1:])
-	#if not args.table:
-	#	# use input file name for table
-	#	args.table = os.path.splitext(os.path.basename(args.input_file))[0]
-	
-	#main(args.input_file, args.user, args.password, args.host, args.table, args.database)
-	print('executing main... ')
-	main(full_filepath, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
