@@ -42,7 +42,7 @@ $ python gtfs_realtime_client.py <POLL INTERVAL> <BUS NUMBER> <MAX BUSES>
 
 ~~~~
 $ pip3 install pymsql
-$ pip install urllib
+$ pip install requests
 
 $ python3 louisvillekygov-to-awscivicdata.py
 ~~~~
