@@ -13,6 +13,7 @@ import collections
 import warnings 
 import pymysql	
 import pymysql.cursors
+from pprint import pprint
 pymysql.install_as_MySQLdb()
 	
 
@@ -202,21 +203,39 @@ def main(input_file, user, password, host, table, database, max_inserts=10000):
 	db.commit()
 	print('Done!')
 
+def get_crime_datasets():
+	
+	context = ssl._create_unverified_context()
+	
+	distributions = []
+	
+	with urllib.request.urlopen("https://data.louisvilleky.gov/data.json", context=context) as data_file:
+		data = json.load(data_file)
+		
+		crime_dataset = [dataset for dataset in data["dataset"] 
+			if dataset["identifier"] == "a0c75ea8-ef9e-458b-91a2-b9e42013009f"] #Crime Data identifier
+		
+		distributions = [ distribution for distribution in crime_dataset[0]["distribution"]]
+			
+		print(distributions[0]["title"])
+	
+	return distributions
+
 
 def lambda_handler(event, context):
-    #print("Received event: " + json.dumps(event, indent=2))
-    print("beginning handler")
+	#print("Received event: " + json.dumps(event, indent=2))
+	print("beginning handler")
+
+	#main(args.input_file, args.user, args.password, args.host, args.table, args.database)
+	# example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_9.csv
+	print('executing main... ')
+
+	crimefile_2017 = get_crime_datasets()[14]["downloadURL"]
+	print(crimefile_2017)
+	
+	main(crimefile_2017, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
+
+	return "handler completed"
     
-    #main(args.input_file, args.user, args.password, args.host, args.table, args.database)
-    # example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_9.csv
-    url_base = "https://data.louisvilleky.gov/sites/default/files"
-    filename_base = "Crime_Data_"
-    year = "2017"
-    file_number = "7"
-    file_ext = ".csv"
-    full_filepath = str.format("{}/{}{}_{}{}", url_base, filename_base, year, file_number, file_ext)
-    print('executing main... ')
-    main(full_filepath, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
-    
-    return "handler completed"
+lambda_handler(None, None)
 
