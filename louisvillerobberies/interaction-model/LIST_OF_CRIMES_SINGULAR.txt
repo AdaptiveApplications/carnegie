@@ -1,0 +1,6 @@
+robbery
+murder
+homicide
+sex crime
+DUI
+assault

@@ -149,10 +149,10 @@ while (1==1):
 	curr_vehicle_positions = GetVehiclePositions(route_id)
 
 	# compare current to previous positions, and filter
-	if(prev_1_vehicle_positions != None and prev_2_vehicle_positions != None):
-		vehicle_positions = PositionsMovingCloser(curr_vehicle_positions, prev_1_vehicle_positions, prev_1_vehicle_positions)
-	else:
-		vehicle_positions = curr_vehicle_positions
+	#if(prev_1_vehicle_positions != None and prev_2_vehicle_positions != None):
+	#	vehicle_positions = PositionsMovingCloser(curr_vehicle_positions, prev_1_vehicle_positions, prev_1_vehicle_positions)
+	#else:
+	vehicle_positions = curr_vehicle_positions
 
 	max_vehicles = min(int(max_vehicles), vehicle_positions.__len__())
 
@@ -161,8 +161,8 @@ while (1==1):
 	threading.Event().wait(poll_int)
 
 	# set previous vehicle positions
-	prev_2_vehicle_positions = prev_1_vehicle_positions
-	prev_1_vehicle_positions = curr_vehicle_positions
+	#prev_2_vehicle_positions = prev_1_vehicle_positions
+	#prev_1_vehicle_positions = curr_vehicle_positions
 
 
 #exit(1)

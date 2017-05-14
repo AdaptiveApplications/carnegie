@@ -43,7 +43,7 @@ exports.handler = (event, context, callback) => {
                 }
                 
                 var mainText = "The following is a summary of crime in Louisville, Kentucky in the past " + numberOfDays.toString() + " days: " + crimeSummary;
-                mainText += "This summary is provided by the Louisville Metrol Open Data portal. For more detail visit data.louisvilleky.gov."
+                mainText += " This summary is provided by the Louisville Metro Open Data portal. For more detail visit data.louisvilleky.gov."
                 var alexaResponse = [
                 						  {
                 						    "uid": "EXAMPLE_CHANNEL_MULTI_ITEM_JSON_TTS_1",

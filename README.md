@@ -17,7 +17,7 @@
 	* Developers (group) has RDSFullAccess, EC2FullAccess, LambdaFullAccess, S3FullAccess
 
 # Build Lambda NodeJS 
-1. Create a zip archive containing index.js and the entire node_modules directory.
+1. Create a zip archive containing *.js and the entire node_modules directory.
 2. Upload the zip archive to the Lambda dev console.
 3. Profit.
 
@@ -42,7 +42,7 @@ $ python gtfs_realtime_client.py <POLL INTERVAL> <BUS NUMBER> <MAX BUSES>
 
 ~~~~
 $ pip3 install pymsql
-$ pip install urllib
+$ pip install requests
 
 $ python3 louisvillekygov-to-awscivicdata.py
 ~~~~

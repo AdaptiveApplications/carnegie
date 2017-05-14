@@ -1,0 +1,48 @@
+GetCrime how many {Crime} occurred in {Month} in {Area}
+GetCrime how many {Crime} occurred in {Area} in {Month}
+GetCrime how many {Crime} happened in {Month} in {Area}
+GetCrime how many {Crime} happened in {Area} in {Month}
+GetCrime how many {Crime} were there in {Month} in {Area}
+GetCrime how many {Crime} were there in {Area} in {Month}
+
+GetCrimeLastMonth how many {Crime} occurred last month in {Area}
+GetCrimeLastMonth how many {Crime} occurred in {Area} last month
+GetCrimeLastMonth how many {Crime} happened last month in {Area}
+GetCrimeLastMonth how many {Crime} happened in {Area} last month
+GetCrimeLastMonth how many {Crime} were there last month in {Area}
+GetCrimeLastMonth how many {Crime} were there in {Area} last month 
+
+GetCrimeLastYear how many {Crime} occurred last year in {Area}
+GetCrimeLastYear how many {Crime} occurred in {Area} last year
+GetCrimeLastYear how many {Crime} happened last year in {Area}
+GetCrimeLastYear how many {Crime} happened in {Area} last year
+GetCrimeLastYear how many {Crime} were there last year in {Area}
+GetCrimeLastYear how many {Crime} were there in {Area} last year
+
+GetCrimeThisYear how many {Crime} have occurred this year in {Area}
+GetCrimeThisYear how many {Crime} have occurred in {Area} this year
+GetCrimeThisYear how many {Crime} have happened this year in {Area}
+GetCrimeThisYear how many {Crime} have happened in {Area} this year
+GetCrimeThisYear how many {Crime} have there been this year in {Area}
+GetCrimeThisYear how many {Crime} have there been in {Area} this year
+
+GetCrimeLouisville how many {Crime} occurred in {Month}
+GetCrimeLouisville how many {Crime} happened in {Month}
+GetCrimeLouisville how many {Crime} were there in {Month}
+
+GetCrimeLastMonthLouisville how many {Crime} occurred last month
+GetCrimeLastMonthLouisville how many {Crime} happened last month
+GetCrimeLastMonthLouisville how many {Crime} were there last month 
+
+GetCrimeLastYearLouisville how many {Crime} occurred last year
+GetCrimeLastYearLouisville how many {Crime} happened last year
+GetCrimeLastYearLouisville how many {Crime} were there last year
+
+GetCrimeThisYearLouisville how many {Crime} have occurred this year
+GetCrimeThisYearLouisville how many {Crime} have happened this year
+GetCrimeThisYearLouisville how many {Crime} have there been this year  
+
+GetSupportedCrimeTypes which crime types are supported
+GetSupportedCrimeTypes what crime types are supported
+
+GetCrimeDetailsLouisville about the most recent {CrimeSingular}
