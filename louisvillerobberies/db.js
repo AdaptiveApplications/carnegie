@@ -83,8 +83,9 @@ function getCrimeCount(alexa, crime, neighborhood, month) {
                 console.log(sql);
                 connection.query(sql, [crimeType], this);
             } else {
-                speak = "I'm sorry, I don't support the crime type " + crime + ". To hear a list of which types I understand, please say: " +
-                        "Alexa, ask " + constants.SKILL_NAME + " which crime types are supported.";
+                speak = constants.UNRECOGNIZED_CRIME_TYPE_RESPONSE.replace('{crime}', crime);
+                //speak = "I'm sorry, I don't support the crime type " + crime + ". To hear a list of which types I understand, please say: " +
+                //        "Alexa, ask " + constants.SKILL_NAME + " which crime types are supported.";
                 alexa.emit(':tellWithCard', speak, constants.SKILL_NAME, speak);
                 return;
             }
