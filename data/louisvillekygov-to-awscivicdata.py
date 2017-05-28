@@ -230,7 +230,7 @@ def lambda_handler(event, context):
 	print("beginning handler")
 
 	#main(args.input_file, args.user, args.password, args.host, args.table, args.database)
-	# example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_9.csv
+	# example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_2.csv
 	print('executing main... ')
 
 	for dataset in get_crime_datasets():
@@ -241,5 +241,5 @@ def lambda_handler(event, context):
 
 	return "handler completed"
     
-lambda_handler(None, None)
+#lambda_handler(None, None)
 
