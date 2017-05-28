@@ -180,7 +180,7 @@ function getCrimeDetails(alexa, crime, neighborhood) {
                 console.log(err);
             } else {
                 //crimeCount = rows[0].cnt;
-                var dateTimeReported = moment(rows[0].date_reported).format('dddd, MMMM Mo, [at] h:mm a');
+                var dateTimeReported = moment(rows[0].date_reported).format('dddd, MMMM Do, [at] h:mm a');
                 speak = "The most recent " + crime + " was a " + rows[0].uor_desc + " charge, reported on " + dateTimeReported + ". ";
                 speak += "It occurred at a " + rows[0].premise_type + ", at " + rows[0].block_address + ".";
 
