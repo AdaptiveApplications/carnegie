@@ -180,7 +180,10 @@ def main(input_file, user, password, host, table, database, max_inserts=10000):
 				cursor.execute(insert_sql, row)
 				if i % max_inserts == 0:
 					db.commit()
-					print('commit')
+					if(i % 10):
+						print('.')
+					if(i%100):
+						print('\r\n')
 			else:
 				header = format_header(row)
 				schema_sql = get_schema(table, header, col_types)
@@ -230,10 +233,11 @@ def lambda_handler(event, context):
 	# example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_9.csv
 	print('executing main... ')
 
-	crimefile_2017 = get_crime_datasets()[14]["downloadURL"]
-	print(crimefile_2017)
-	
-	main(crimefile_2017, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
+	for dataset in get_crime_datasets():
+		crimefile = dataset["downloadURL"]
+		if("2017" in crimefile):
+			print(crimefile)
+			main(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
 
 	return "handler completed"
     
