@@ -63,3 +63,4 @@ Upload the zip to AWS Lambda for testing
 * AWS Console https://165284110550.signin.aws.amazon.com/console
 * Slack: adaptiveapplications.slack.com
 * Package data script
+* Zipcode/neighborhood source: https://suburbanstats.org/zip-codes/kentucky  (and some other source I forgot + general knowledge)
