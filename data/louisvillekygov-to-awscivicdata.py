@@ -180,7 +180,10 @@ def main(input_file, user, password, host, table, database, max_inserts=10000):
 				cursor.execute(insert_sql, row)
 				if i % max_inserts == 0:
 					db.commit()
-					print('commit')
+					if(i % 10):
+						print('.')
+					if(i%100):
+						print('\r\n')
 			else:
 				header = format_header(row)
 				schema_sql = get_schema(table, header, col_types)
@@ -221,21 +224,29 @@ def get_crime_datasets():
 	
 	return distributions
 
+def get_csv_file_name():
+	context = ssl._create_unverified_context()
+	with urllib.request.urlopen("https://data.louisvilleky.gov/api/3/action/package_show?id=crime-data", context=context) as data_file:
+		data = json.load(data_file)
+
+		file_name = data["result"][0]["resources"][0]["url"]
+		print(file_name)
+		return file_name
 
 def lambda_handler(event, context):
 	#print("Received event: " + json.dumps(event, indent=2))
 	print("beginning handler")
 
 	#main(args.input_file, args.user, args.password, args.host, args.table, args.database)
-	# example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_9.csv
+	# example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_2.csv
 	print('executing main... ')
 
-	crimefile_2017 = get_crime_datasets()[14]["downloadURL"]
-	print(crimefile_2017)
-	
-	main(crimefile_2017, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
+	crimefile = get_csv_file_name()
+	if("2017" in crimefile):
+		print(crimefile)
+		main(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
 
 	return "handler completed"
     
-lambda_handler(None, None)
+#lambda_handler(None, None)
 

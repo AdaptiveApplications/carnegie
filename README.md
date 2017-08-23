@@ -45,6 +45,15 @@ $ pip3 install pymsql
 $ pip install requests
 
 $ python3 louisvillekygov-to-awscivicdata.py
+
+Package
+$ conda install virtualenv
+$ virtualenv ./carnegie-ve
+$ pip install carnegie-ve pymysql
+$ cd carnegie-ve/lib/python3.6/site-packages
+$ zip -r -X "carnegie-ve.zip" ./*
+
+Upload the zip to AWS Lambda for testing
 ~~~~
 
 # Notes and Tools
@@ -53,3 +62,5 @@ $ python3 louisvillekygov-to-awscivicdata.py
 	* username: ro / password: civicdataalliance
 * AWS Console https://165284110550.signin.aws.amazon.com/console
 * Slack: adaptiveapplications.slack.com
+* Package data script
+* Zipcode/neighborhood source: https://suburbanstats.org/zip-codes/kentucky  (and some other source I forgot + general knowledge)

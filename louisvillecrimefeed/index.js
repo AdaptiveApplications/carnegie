@@ -1,5 +1,6 @@
 exports.handler = (event, context, callback) => {
     var mysql = require('mysql');
+    var moment = require('moment');
     var step = require('step');
     
     var connection = mysql.createConnection(
@@ -41,13 +42,13 @@ exports.handler = (event, context, callback) => {
                 		crimeSummary += ", ";
                 	}
                 }
-                
+                var now = moment();
                 var mainText = "The following is a summary of crime in Louisville, Kentucky in the past " + numberOfDays.toString() + " days: " + crimeSummary;
                 mainText += " This summary is provided by the Louisville Metro Open Data portal. For more detail visit data.louisvilleky.gov."
                 var alexaResponse = [
                 						  {
                 						    "uid": "EXAMPLE_CHANNEL_MULTI_ITEM_JSON_TTS_1",
-                						    "updateDate": "2016-04-10T00:00:00.0Z",
+                						    "updateDate": now.toISOString(),
                 						    "titleText": "Crime stats in Louisville, KY",
                 						    "mainText": mainText,
                 						    "redirectionUrl": "https://data.louisvilleky.gov"
