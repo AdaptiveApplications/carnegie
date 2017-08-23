@@ -225,10 +225,11 @@ def get_crime_datasets():
 	return distributions
 
 def get_csv_file_name():
+	context = ssl._create_unverified_context()
 	with urllib.request.urlopen("https://data.louisvilleky.gov/api/3/action/package_show?id=crime-data", context=context) as data_file:
 		data = json.load(data_file)
 
-		file_name = data["result"]["resources"][0]["url"]
+		file_name = data["result"][0]["resources"][0]["url"]
 		print(file_name)
 		return file_name
 
@@ -240,11 +241,10 @@ def lambda_handler(event, context):
 	# example file: https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_2.csv
 	print('executing main... ')
 
-	for dataset in get_crime_datasets():
-		crimefile = dataset["downloadURL"]
-		if("2017" in crimefile):
-			print(crimefile)
-			main(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
+	crimefile = get_csv_file_name()
+	if("2017" in crimefile):
+		print(crimefile)
+		main(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
 
 	return "handler completed"
     
