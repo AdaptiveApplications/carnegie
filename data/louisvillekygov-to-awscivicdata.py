@@ -224,6 +224,13 @@ def get_crime_datasets():
 	
 	return distributions
 
+def get_csv_file_name():
+	with urllib.request.urlopen("https://data.louisvilleky.gov/api/3/action/package_show?id=crime-data", context=context) as data_file:
+		data = json.load(data_file)
+
+		file_name = data["result"]["resources"][0]["url"]
+		print(file_name)
+		return file_name
 
 def lambda_handler(event, context):
 	#print("Received event: " + json.dumps(event, indent=2))
