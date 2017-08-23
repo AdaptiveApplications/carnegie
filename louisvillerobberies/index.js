@@ -31,7 +31,9 @@ var handlers = {
         db.getSupportedCrimeTypes(this);
     },
     "GetCrimeDetailsLouisville": function() {
-        db.getCrimeDetails(this, this.event.request.intent.slots.CrimeSingular.value, constants.CITY);
+        var neighborhood = !this.event.request.intent.slots.Area ? null : this.event.request.intent.slots.Area.value;
+
+        db.getCrimeDetails(this, this.event.request.intent.slots.CrimeSingular.value, neighborhood);
     },
 
     "AMAZON.HelpIntent": function() {
