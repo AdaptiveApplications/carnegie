@@ -2,144 +2,34 @@ import json
 import csv
 import urllib.request
 import ssl
-import os
 import re
-import sys
 import csv
-import time
 import io
-import argparse
 import collections
-import warnings 
 import pymysql	
 import pymysql.cursors
 import redis
-from pprint import pprint
 from hashlib import blake2b
 from datetime import datetime
 from datetime import timedelta
+
 pymysql.install_as_MySQLdb()
 	
 INSERT_SQL = ""
 DELETE_SQL = ""
 
-# CSV to MySQL Utilities credited to --> https://bitbucket.org/richardpenman/csv2mysql
-# suppress annoying mysql warnings
-#warnings.filterwarnings(action='ignore', category=pymysql.Warning) 
-
-def get_type(s):
-	"""Find type for this string
-	"""
-	# try integer type
-	try:
-		v = int(s)
-	except ValueError:
-		pass
-	else:
-		if abs(v) > 2147483647:
-			return 'bigint'
-		else:
-			return 'int'
-	# try float type
-	try:
-		float(s)
-	except ValueError:
-		pass
-	else:
-		return 'double'
-
-	# check for timestamp
-	dt_formats = (
-		('%Y-%m-%d %H:%M:%S', 'datetime'),
-		('%Y-%m-%d %H:%M:%S.%f', 'datetime'),
-		('%Y-%m-%d', 'date'),
-		('%H:%M:%S', 'time'),
-	)
-	for dt_format, dt_type in dt_formats:
-		try:
-			time.strptime(s, dt_format)
-		except ValueError:
-			pass
-		else:
-			return dt_type
-	
-	# doesn't match any other types so assume text
-	if len(s) > 255:
-		return 'text'
-	else:
-		return 'varchar(255)'
-
-
-def most_common(l, default='varchar(255)'):
-	"""Return most common value from list
-	"""
-	# some formats trump others
-	if l:
-		for dt_type in ('text', 'bigint'):
-			if dt_type in l:
-				return dt_type
-			return max(l, key=l.count)
-	return default
-
-
-def get_col_types(input_file, max_rows=1000):
-	"""Find the type for each CSV column
-	"""
-	csv_types = collections.defaultdict(list)
-
-	context = ssl._create_unverified_context()
-
-	with urllib.request.urlopen(input_file, context=context) as response:
-		csv_str = io.StringIO(response.read().decode('utf-8'))
-		reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True, lineterminator="\r\n")
-		# test the first few rows for their data types
-		
-		rows = enumerate(reader)
-
-		for row_i, row in rows:
-			if row_i == 0:
-				header = row
-			else:
-				for col_i, s in enumerate(row):
-					data_type = get_type(s)
-					csv_types[header[col_i]].append(data_type)
-	 
-			if row_i == max_rows:
-				break
-
-	# take the most common data type for each row
-
-	return [most_common(csv_types[col]) for col in header]
-
-
-def get_schema(table, header, col_types):
-	"""Generate the schema for this table from given types and columns
-	"""
-	schema_sql = """CREATE TABLE IF NOT EXISTS %s ( 
-		#id int NOT NULL AUTO_INCREMENT,""" % table 
-
-	#print(header)
-	#print(col_types)
-	
-	for col_name, col_type in zip(header, col_types):
-		schema_sql += '\n%s %s,' % (col_name, col_type)
-
-	schema_sql += """\nPRIMARY KEY (id)
-		) DEFAULT CHARSET=utf8;"""
-	return schema_sql
-
-
 def get_insert(table, header):
 	"""Generate the SQL for inserting rows
 	"""
+	header.append('insert_timestamp')
+
 	field_names = ', '.join(header)
 	field_markers = ', '.join('%s' for col in header)
-	return 'INSERT INTO %s (%s) VALUES (%s);' % \
-		(table, field_names + ',insert_timestamp', field_markers + ', %s')
+	return 'INSERT INTO %s (%s) VALUES (%s);' % (table, field_names, field_markers)
+
 
 def get_delete(table):
-	return 'DELETE FROM %s WHERE incident_number = %s;' % \
-		(table, '%s')
+	return 'DELETE FROM %s WHERE incident_number = %s;' % (table, '%s')
 
 
 def format_header(row):
@@ -157,90 +47,17 @@ def format_header(row):
 	return header
 
 
-def main(input_file, user, password, host, table, database, max_inserts=10000):
-	print("Importing `%s' into MySQL database `%s.%s'" % (input_file, database, table))
-	db = pymysql.connect(host=host, user=user, passwd=password, charset='utf8')
-	cursor = db.cursor()
-	# create database and if doesn't exist
-	#cursor.execute('CREATE DATABASE IF NOT EXISTS %s;' % database)
-	db.select_db(database)
-
-	# define table
-	print('Analyzing column types ...')
-	col_types = get_col_types(input_file)
-	print(col_types)
-
-	header = None
-
-	print("url: '{}'".format(input_file))
-
-	context = ssl._create_unverified_context()
-
-	with urllib.request.urlopen(input_file, context=context) as response:
-		#print(response.read().decode('utf-8'))
-		csv_str = io.StringIO(response.read().decode('utf-8'))
-		reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
-		#data = response.read()
-		#for i, row in enumerate(csv.reader(open(input_file))):
-		for i, row in enumerate(reader):
-			if header:
-				while len(row) < len(header):
-					row.append('') # this row is missing columns so pad blank values
-				cursor.execute(insert_sql, row)
-				if i % max_inserts == 0:
-					db.commit()
-					if(i % 10):
-						print('.')
-					if(i%100):
-						print('\r\n')
-			else:
-				header = format_header(row)
-				schema_sql = get_schema(table, header, col_types)
-				print(schema_sql)
-				# create table
-				cursor.execute('DROP TABLE IF EXISTS %s;' % table)
-				cursor.execute(schema_sql)
-				# create index for more efficient access
-				try:
-					cursor.execute('CREATE INDEX ids ON %s (id);' % table)
-				except pymysql.OperationalError:
-					pass # index already exists
-
-				print('Inserting rows ...')
-				# SQL string for inserting data
-				insert_sql = get_insert(table, header)
-
-	# commit rows to database
-	print('Committing rows to database ...')
-	db.commit()
-	print('Done!')
-
 def parse_csv(input_file, user, password, host, table, database, max_inserts=10000):
 	print("Importing `%s' into MySQL database `%s.%s'" % (input_file, database, table))
-	db = pymysql.connect(host=host, user=user, passwd=password, charset='utf8')
-	redisCn = redis.StrictRedis(host='127.0.0.1', port=6379, db=0)
-	
-	cursor = db.cursor()
-	
-	db.select_db(database)
-
-	# define table
-	#print('Analyzing column types ...')
-	#col_types = get_col_types(input_file)
-	#print(col_types)
-
-	header = None
-
 	print("url: '{}'".format(input_file))
 
 	context = ssl._create_unverified_context()
 
-	with open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_0_b.csv") as response:
+	with open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_0_a.csv") as response:
 	#with urllib.request.urlopen(input_file, context=context) as response:
 		#csv_str = io.StringIO(response.read().decode('utf-8'))
-		
 		reader = csv.reader(response, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
-		
+
 		# process header, generate SQL
 		header = format_header(next(reader, None))
 		global INSERT_SQL
@@ -252,31 +69,39 @@ def parse_csv(input_file, user, password, host, table, database, max_inserts=100
 		# TODO test the above assumption
 		reader = sorted(reader, key=lambda row: row[0], reverse=False)
 
-		incidents = []
+	incidents = []
 
-		for i, row in enumerate(reader):
-			if i == 0 or row[0] == incidents[0][0]:
-				# incident # of this row matches that of the last row
-				incidents.append(row)
-			else:
-				# new incident #; process the previous incident rows
-				processIncident(incidents, cursor, redisCn)
+	try:
+		db = pymysql.connect(host=host, user=user, passwd=password, db=database, charset='utf8')
+		redisCn = redis.StrictRedis(host='127.0.0.1', port=6379, db=0)
 
-				# reset
-				incidents = []
-				incidents.append(row)
-				
-				if i % 100 == 0:
-					print('Committing rows to database ...')
-					db.commit()
+		with db.cursor() as cursor:	
+			for i, row in enumerate(reader):
+				if i == 0 or row[0] == incidents[0][0]:
+					# incident # of this row matches that of the last row
+					incidents.append(row)
+				else:
+					# new incident #; process the previous incident rows
+					processIncident(incidents, cursor, redisCn)
 
-		# final entry
-		processIncident(incidents, cursor, redisCn)
+					# reset
+					incidents = []
+					incidents.append(row)
+					
+					if i % 100 == 0:
+						print('Committing rows to database ...')
+						db.commit()
 
-	# commit rows to database
-	print('Committing rows to database ...')
-	db.commit()
-	print('Done!')
+			# final entry
+			processIncident(incidents, cursor, redisCn)
+
+		# commit rows to database
+		print('Committing rows to database ...')
+		db.commit()
+		print('Done!')
+	finally:
+		db.close()
+
 
 def processIncident(incidents, cursor, redisCn):
 	incidentText = ""
