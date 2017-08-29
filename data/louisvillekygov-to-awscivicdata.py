@@ -9,6 +9,7 @@ import collections
 import pymysql	
 import pymysql.cursors
 import redis
+import os
 from hashlib import blake2b
 from datetime import datetime
 from datetime import timedelta
@@ -17,10 +18,16 @@ pymysql.install_as_MySQLdb()
 	
 INSERT_SQL = ""
 DELETE_SQL = ""
+LIMIT = 100
+
+#if os.environ['AWS_REGION'] != None:
+redisCn = redis.StrictRedis(host='incident-cache.aqsren.ng.0001.use1.cache.amazonaws.com', port=6379, db=0)
+#else:
+#redisCn = redis.StrictRedis(host='127.0.0.1', port=6379, db=0)
+
 
 def get_insert(table, header):
-	"""Generate the SQL for inserting rows
-	"""
+	# Generate the SQL for inserting rows
 	header.append('insert_timestamp')
 
 	field_names = ', '.join(header)
@@ -49,17 +56,17 @@ def format_header(row):
 
 def parse_csv(input_file, user, password, host, table, database, max_inserts=10000):
 	print("Importing `%s' into MySQL database `%s.%s'" % (input_file, database, table))
-	print("url: '{}'".format(input_file))
 
 	context = ssl._create_unverified_context()
 
-	with open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_0_a.csv") as response:
-	#with urllib.request.urlopen(input_file, context=context) as response:
-		#csv_str = io.StringIO(response.read().decode('utf-8'))
-		reader = csv.reader(response, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
+	#with open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_0_a.csv") as response:
+	with urllib.request.urlopen(input_file, context=context) as response:
+		csv_str = io.StringIO(response.read().decode('utf-8'))
+		reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
 
 		# process header, generate SQL
 		header = format_header(next(reader, None))
+
 		global INSERT_SQL
 		INSERT_SQL = get_insert(table, header)
 		global DELETE_SQL
@@ -67,13 +74,13 @@ def parse_csv(input_file, user, password, host, table, database, max_inserts=100
 
 		# this appears to sort from the second row of the file (which is ideal) since next() was called above
 		# TODO test the above assumption
+		print("sorting reader...")
 		reader = sorted(reader, key=lambda row: row[0], reverse=False)
-
+		print("sorting reader complete")
 	incidents = []
 
 	try:
 		db = pymysql.connect(host=host, user=user, passwd=password, db=database, charset='utf8')
-		redisCn = redis.StrictRedis(host='127.0.0.1', port=6379, db=0)
 
 		with db.cursor() as cursor:	
 			for i, row in enumerate(reader):
@@ -82,7 +89,7 @@ def parse_csv(input_file, user, password, host, table, database, max_inserts=100
 					incidents.append(row)
 				else:
 					# new incident #; process the previous incident rows
-					processIncident(incidents, cursor, redisCn)
+					processIncident(incidents, cursor)
 
 					# reset
 					incidents = []
@@ -91,19 +98,24 @@ def parse_csv(input_file, user, password, host, table, database, max_inserts=100
 					if i % 100 == 0:
 						print('Committing rows to database ...')
 						db.commit()
+					
+					if i >= LIMIT:
+						break
 
 			# final entry
-			processIncident(incidents, cursor, redisCn)
+			processIncident(incidents, cursor)
 
 		# commit rows to database
 		print('Committing rows to database ...')
 		db.commit()
 		print('Done!')
+	except:
+		print("Unexpected error:", sys.exc_info()[0])
 	finally:
 		db.close()
 
 
-def processIncident(incidents, cursor, redisCn):
+def processIncident(incidents, cursor):
 	incidentText = ""
 	# concat the column data from every row pertaining to this incident (minus the ID column as it changes with every new file)
 	for incident in incidents:
@@ -112,17 +124,17 @@ def processIncident(incidents, cursor, redisCn):
 	incidentNum = incidents[0][0]
 	hashText = hash_it(incidentText)
 
-	incidentExists, incidentAltered = checkIncident(incidentNum, hashText, redisCn)
+	incidentExists, incidentAltered = checkIncident(incidentNum, hashText)
 
 	if incidentExists:
 		if incidentAltered:
-			deleteIncident(incidentNum, cursor, redisCn)
-			insertIncident(incidents, hashText, cursor, redisCn)
+			deleteIncident(incidentNum, cursor)
+			insertIncident(incidents, hashText, cursor)
 	else:
-		insertIncident(incidents, hashText, cursor, redisCn)
+		insertIncident(incidents, hashText, cursor)
 
 
-def checkIncident(incidentNum, hashText, redisCn):
+def checkIncident(incidentNum, hashText):
 	# three possible scenarios:
 	# 1) inc isn't present in redis; return False, False (results in insert to mysql and redis)
 	# 2) inc is present in redis and hash matches; return True, False (results in no changes in database or cache)
@@ -141,7 +153,7 @@ def checkIncident(incidentNum, hashText, redisCn):
 
 	return incidentExists, incidentAltered
 
-def insertIncident(incidents, hashText, cursor, redisCn):
+def insertIncident(incidents, hashText, cursor):
 	# load into MYSQL
 	for incident in incidents:
 		# TODO why is this padding necessary?
@@ -158,7 +170,7 @@ def insertIncident(incidents, hashText, cursor, redisCn):
 	print("Incident inserted: " + incidents[0][0])
 
 
-def deleteIncident(incidentNum, cursor, redisCn):
+def deleteIncident(incidentNum, cursor):
 	# delete from MYSQL
 	cursor.execute(DELETE_SQL, incidentNum)
 	# delete Redis key
@@ -205,14 +217,12 @@ def lambda_handler(event, context):
 
 	crimefile = get_csv_file_name()
 	if("2017" in crimefile):
-		print(crimefile)
-		#main(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeDataQA', 'louisvilleky', max_inserts=10)
 		parse_csv(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeDataQA', 'louisvilleky', max_inserts=10)
 
 	diffMinutes = (datetime.now() - startTime) / timedelta(minutes=1)
 	print("Execution time: %dm:%ds" % (diffMinutes, diffMinutes * 60))
 
 	return "handler completed"
-    
-lambda_handler(None, None)
 
+
+#lambda_handler(None, None)
