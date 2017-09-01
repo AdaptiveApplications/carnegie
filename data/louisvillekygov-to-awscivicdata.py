@@ -60,11 +60,11 @@ def parse_csv(input_file, user, password, host, table, database, max_inserts=100
 
 	context = ssl._create_unverified_context()
 
-	with open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_1__Aug_31.csv") as response:
-		reader = csv.reader(response, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
-	#with urllib.request.urlopen(input_file, context=context) as response:
-		#csv_str = io.StringIO(response.read().decode('utf-8'))
-		#reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
+	#with open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_1__Aug_31.cs") as response:
+	#	reader = csv.reader(response, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
+	with urllib.request.urlopen(input_file, context=context) as response:
+		csv_str = io.StringIO(response.read().decode('utf-8'))
+		reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
 
 		# process header, generate SQL
 		header = format_header(next(reader, None))
