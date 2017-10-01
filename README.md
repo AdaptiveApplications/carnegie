@@ -64,6 +64,11 @@ $ https://docs.python.org/3/installing/index.html
 Upload the zip to AWS Lambda for testing
 ~~~~
 
+#Redis and EC2
+ssh ec2-user@ec2-34-229-153-56.compute-1.amazonaws.com -i ssh-ec2-pair.pem
+cd redis-stable
+redis-stable]$ src/redis-cli -c -h incident-cache.aqsren.ng.0001.use1.cache.amazonaws.com -p 6379
+
 # Notes and Tools
 * https://dev.mysql.com/downloads/workbench/
 	* civicdata.crogewynsqom.us-east-1.rds.amazonaws.com:3306
