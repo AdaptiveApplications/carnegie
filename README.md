@@ -53,6 +53,14 @@ $ pip install carnegie-ve pymysql
 $ cd carnegie-ve/lib/python3.6/site-packages
 $ zip -r -X "carnegie-ve.zip" ./*
 
+Scott's Journey (on a Mac, using homebrew)
+$ brew install python3
+$ brew link --overwrite python3  # run 'brew link python3' to see warnings
+$ python3 -m venv ./carnegie-ve  # create new virtualenv (built-in to 3.6)
+$ source carnegie-ve/bin/activate
+$ python -m pip install pymysql
+$ https://docs.python.org/3/installing/index.html
+
 Upload the zip to AWS Lambda for testing
 ~~~~
 
