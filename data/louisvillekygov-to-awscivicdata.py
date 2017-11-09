@@ -252,5 +252,5 @@ def lambda_handler(event, context):
 
 	return "handler completed"
     
-lambda_handler(None, None)
+#lambda_handler(None, None)
 
