@@ -241,7 +241,7 @@ def lambda_handler(event, context):
 
 	crimefile = get_csv_file_name()
 	if("2017" in crimefile):
-		parse_csv(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeDataQA', 'louisvilleky', max_inserts=10)
+		parse_csv(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
 
 	diffMinutes = (datetime.now() - startTime) / timedelta(minutes=1)
 	print("Execution time: %dm:%ds" % (diffMinutes, diffMinutes * 60))
