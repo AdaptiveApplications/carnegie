@@ -15,21 +15,25 @@ import sys
 from hashlib import blake2b
 from datetime import datetime
 from datetime import timedelta
+import time
 
 pymysql.install_as_MySQLdb()
 	
 INSERT_SQL = ""
 DELETE_SQL = ""
 LIMIT = -1
+INPUT_FILE = 'http://lky-open-data.s3.amazonaws.com/LMPD/Crime_Data_2017.csv'
 
 if 'AWS_REGION' not in os.environ:
 	redisCn = redis.StrictRedis(host='127.0.0.1', port=6379, db=0)
 else:
 	redisCn = redis.StrictRedis(host='incident-cache.aqsren.ng.0001.use1.cache.amazonaws.com', port=6379, db=0)
 
+
 def get_insert(table, header):
 	# Generate the SQL for inserting rows
 	header.append('insert_timestamp')
+	header.append('status')
 
 	field_names = ', '.join(header)
 	field_markers = ', '.join('%s' for col in header)
@@ -55,31 +59,53 @@ def format_header(row):
 	return header
 
 
-def parse_csv(input_file, user, password, host, table, database, max_inserts=10000):
-	print("Importing `%s' into MySQL database `%s.%s'" % (input_file, database, table))
+def parse_csv(user, password, host, table, database, max_inserts=10000):
+	#print("Importing '%s' into MySQL database '%s.%s'" % (INPUT_FILE, database, table))
+	global INPUT_FILE
 
 	context = ssl._create_unverified_context()
 
-	#with open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_1__Aug_31.cs") as response:
-	#	reader = csv.reader(response, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
-	with urllib.request.urlopen(input_file, context=context) as response:
-		csv_str = io.StringIO(response.read().decode('utf-8'))
-		reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
+	# below is a failsafe for getting the proper CSV file input name.
+	# if the file is not where we expect it, look up the name via the web service call.
+	# we'll let this run for a while and log any errors to supply info to Michael Schnuerle with intent to eliminate the failsafe when we feel comfortable.
+	
+	#response = open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_1__9_6_2017.csv")
+	#response = open("/Users/scottdaugherty/Documents/Alexa/Louisville/carnegie/data/Crime_Data_2017_1__9_10_2017.csv")
+	#reader = csv.reader(response, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
 
-		# process header, generate SQL
-		header = format_header(next(reader, None))
+	
+	try:
+		with urllib.request.urlopen(INPUT_FILE, context=context) as response:
+			csv_str = io.StringIO(response.read().decode('utf-8'))
+	except urllib.error.HTTPError:
+		print('INPUT_FILE not found: %s.' % (INPUT_FILE))
+		INPUT_FILE = get_csv_file_name()
+		print('Using %s.' % (INPUT_FILE))
+		try:
+			with urllib.request.urlopen(INPUT_FILE, context=context) as response:
+				csv_str = io.StringIO(response.read().decode('utf-8'))
+		except urllib.error.HTTPError:
+			print('No CSV file not found!!!')
+			return
 
-		global INSERT_SQL
-		INSERT_SQL = get_insert(table, header)
-		global DELETE_SQL
-		DELETE_SQL = get_delete(table)
+	reader = csv.reader(csv_str, dialect='excel', delimiter=',', quotechar='"', skipinitialspace=True)
+	
 
-		# this appears to sort from the second row of the file (which is ideal) since next() was called above
-		# TODO test the above assumption
-		print("sorting reader...")
-		#reader = sorted(reader, key=lambda row: row[0], reverse=False)
-		reader = sorted(reader, key=operator.itemgetter(0), reverse=False)
-		print("sorting reader complete")
+	# process header, generate SQL
+	header = format_header(next(reader, None))
+
+	global INSERT_SQL
+	INSERT_SQL = get_insert(table, header)
+	global DELETE_SQL
+	DELETE_SQL = get_delete(table)
+
+	# sort the CSV file by incident number
+	# this appears to sort from the second row of the file (which is ideal) since next() was called above
+	print("sorting reader...")
+	#reader = sorted(reader, key=lambda row: row[0], reverse=False)
+	reader = sorted(reader, key=operator.itemgetter(0), reverse=False)
+	print("sorting reader complete")
+
 	incidents = []
 
 	try:
@@ -108,10 +134,16 @@ def parse_csv(input_file, user, password, host, table, database, max_inserts=100
 	except:
 		print("Unexpected error:", sys.exc_info())
 	finally:
+		#response.close()
 		db.close()
 
 
 def processIncident(incidents, cursor, db):
+	# The CSV file will often send the same multi-offense incident today in a different order than yesterday.
+	# Since the ID contained in that file is useless, we sort the incidents by description in an effort to minimize cache misses.
+	if(len(incidents) > 1):
+		incidents = sorted(incidents, key=lambda row: row[3], reverse=False)
+
 	incidentText = ""
 	# concat the column data from every row pertaining to this incident (minus the ID column as it changes with every new file)
 	for incident in incidents:
@@ -160,6 +192,7 @@ def insertIncidents(incidents, hashText, cursor, db):
 			incident.append('') # this row is missing columns so pad blank values
 
 		incident.append(datetime.now())
+		incident.append('A')
 
 		try:
 			cursor.execute(INSERT_SQL, incident)
@@ -181,8 +214,16 @@ def insertIncidents(incidents, hashText, cursor, db):
 
 def deleteIncident(incidentNum, cursor, db):
 	try:
+		data = []
 		# delete from MYSQL
-		cursor.execute(DELETE_SQL, incidentNum)
+		#cursor.execute(DELETE_SQL, incidentNum)
+		# SRD 9/5/2017 - for testing purposes, change status rather than delete
+		sql = 'UPDATE crimeDataQA SET status = "I", update_timestamp = %s WHERE incident_number = %s;'
+		
+		data.append(datetime.now())
+		data.append(incidentNum)
+
+		cursor.execute(sql, data)
 		db.commit()
 		# delete from Redis
 		redisCn.delete(incidentNum)
@@ -235,16 +276,17 @@ def get_csv_file_name():
 	return file_name
 
 def lambda_handler(event, context):
-	startTime = datetime.now()
+	print('Execution for %s' % datetime.now())
 
-	print("Execution for %s" % startTime)
+	startTime = time.time()
 
-	crimefile = get_csv_file_name()
-	if("2017" in crimefile):
-		parse_csv(crimefile, 'rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
+	if 'AWS_REGION' not in os.environ:
+		parse_csv('root', '', 'localhost', 'crimeDataQA', 'louisvilleky', max_inserts=10)
+	else:
+		parse_csv('rw', 'civicdataalliance', 'civicdata.crogewynsqom.us-east-1.rds.amazonaws.com', 'crimeData', 'louisvilleky', max_inserts=10)
 
-	diffMinutes = (datetime.now() - startTime) / timedelta(minutes=1)
-	print("Execution time: %dm:%ds" % (diffMinutes, diffMinutes * 60))
+	elapsed = time.time() - startTime
+	print("Execution time: %s" % (timedelta(seconds=elapsed)))
 
 	return "handler completed"
 
