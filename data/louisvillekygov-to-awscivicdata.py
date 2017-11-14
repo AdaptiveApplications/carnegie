@@ -223,12 +223,16 @@ def hash_it(input):
 
 def get_csv_file_name():
 	context = ssl._create_unverified_context()
-	with urllib.request.urlopen("https://data.louisvilleky.gov/api/3/action/package_show?id=crime-data", context=context) as data_file:
-		data = json.load(data_file)
+	#with urllib.request.urlopen("https://data.louisvilleky.gov/api/3/action/package_show?id=crime-data", context=context) as data_file:
+	#	data = json.load(data_file)
 
-		file_name = data["result"][0]["resources"][0]["url"]
-		return file_name
-
+		#file_name = data["result"][0]["resources"][0]["url"]
+		
+	file_name = "http://lky-open-data.s3.amazonaws.com/LMPD/Crime_Data_2017.csv"
+	
+	print(file_name)
+	
+	return file_name
 
 def lambda_handler(event, context):
 	startTime = datetime.now()

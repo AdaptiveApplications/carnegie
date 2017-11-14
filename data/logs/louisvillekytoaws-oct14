@@ -1,0 +1,38 @@
+START RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2 Version: $LATEST
+beginning handler
+executing main... 
+https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv
+https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv
+Importing `https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv' into MySQL database `louisvilleky.crimeData'
+Analyzing column types ...
+['varchar(255)', 'datetime', 'datetime', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'int', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'int', 'int']
+url: 'https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv'
+END RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2
+REPORT RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2	Duration: 28234.41 ms	Billed Duration: 28300 ms Memory Size: 128 MB	Max Memory Used: 128 MB	
+RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2 Process exited before completing request
+
+START RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2 Version: $LATEST
+beginning handler
+executing main... 
+https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv
+https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv
+Importing `https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv' into MySQL database `louisvilleky.crimeData'
+Analyzing column types ...
+['varchar(255)', 'datetime', 'datetime', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'int', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'int', 'int']
+url: 'https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv'
+END RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2
+REPORT RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2	Duration: 43888.56 ms	Billed Duration: 43900 ms Memory Size: 128 MB	Max Memory Used: 128 MB	
+RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2 Process exited before completing request
+
+START RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2 Version: $LATEST
+beginning handler
+executing main... 
+https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv
+https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv
+Importing `https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv' into MySQL database `louisvilleky.crimeData'
+Analyzing column types ...
+['varchar(255)', 'datetime', 'datetime', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'int', 'varchar(255)', 'varchar(255)', 'varchar(255)', 'int', 'int']
+url: 'https://data.louisvilleky.gov/sites/default/files/Crime_Data_2017_1.csv'
+END RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2
+REPORT RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2	Duration: 53745.58 ms	Billed Duration: 53800 ms Memory Size: 128 MB	Max Memory Used: 128 MB	
+RequestId: a9fbaa32-b11d-11e7-9d0f-6949934b71e2 Process exited before completing request
