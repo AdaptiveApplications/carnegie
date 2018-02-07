@@ -269,7 +269,7 @@ def get_csv_file_name():
 
 		#file_name = data["result"][0]["resources"][0]["url"]
 		
-	file_name = "http://lky-open-data.s3.amazonaws.com/LMPD/Crime_Data_2017.csv"
+	file_name = "http://lky-open-data.s3.amazonaws.com/LMPD/Crime_Data_%s.csv" % datetime.now().year
 	
 	print(file_name)
 	
